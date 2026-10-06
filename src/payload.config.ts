@@ -73,6 +73,9 @@ export default buildConfig({
     // Vercel Blob is used in production; locally (no token) media falls back to public/media.
     vercelBlobStorage({
       enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
+      // Keep the media schema identical with or without Blob so migrations generated
+      // locally (no token) include the plugin's hidden `prefix` / `_objectKey` columns.
+      alwaysInsertFields: true,
       collections: {
         media: true,
       },
