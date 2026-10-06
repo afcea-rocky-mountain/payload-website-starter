@@ -4,7 +4,8 @@ import config from '@payload-config'
 import { headers } from 'next/headers'
 import { revalidatePath, revalidateTag } from 'next/cache'
 
-export const maxDuration = 60 // This function can run for a maximum of 60 seconds
+// Seeding uploads ~18 images through sharp (7 sizes each) and Vercel Blob; give it room.
+export const maxDuration = 300
 
 export async function POST(): Promise<Response> {
   const payload = await getPayload({ config })
@@ -33,6 +34,7 @@ export async function POST(): Promise<Response> {
     return Response.json({ success: true })
   } catch (e) {
     payload.logger.error({ err: e, message: 'Error seeding data' })
-    return new Response('Error seeding data.', { status: 500 })
+    const message = e instanceof Error ? e.message : String(e)
+    return Response.json({ success: false, error: message }, { status: 500 })
   }
 }

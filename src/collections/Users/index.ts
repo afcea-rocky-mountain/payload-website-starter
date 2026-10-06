@@ -15,7 +15,11 @@ export const Users: CollectionConfig = {
     defaultColumns: ['name', 'email'],
     useAsTitle: 'name',
   },
-  auth: true,
+  auth: {
+    forgotPassword: {
+      generateEmailSubject: () => 'Reset your AFCEA Rocky Mountain admin password',
+    },
+  },
   fields: [
     {
       name: 'name',

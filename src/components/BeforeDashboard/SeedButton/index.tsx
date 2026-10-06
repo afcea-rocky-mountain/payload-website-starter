@@ -31,45 +31,40 @@ export const SeedButton: React.FC = () => {
         toast.info('Seeding already in progress.')
         return
       }
-      if (error) {
-        toast.error(`An error occurred, please refresh and try again.`)
-        return
-      }
-
+      setError(null)
       setLoading(true)
 
-      try {
-        toast.promise(
-          new Promise((resolve, reject) => {
-            try {
-              fetch('/next/seed', { method: 'POST', credentials: 'include' })
-                .then((res) => {
-                  if (res.ok) {
-                    resolve(true)
-                    setSeeded(true)
-                  } else {
-                    reject('An error occurred while seeding.')
-                  }
-                })
-                .catch((error) => {
-                  reject(error)
-                })
-            } catch (error) {
-              reject(error)
-            }
-          }),
-          {
-            loading: 'Seeding with data....',
-            success: <SuccessMessage />,
-            error: 'An error occurred while seeding.',
-          },
-        )
-      } catch (err) {
-        const error = err instanceof Error ? err.message : String(err)
-        setError(error)
-      }
+      toast.promise(
+        (async () => {
+          const res = await fetch('/next/seed', { method: 'POST', credentials: 'include' })
+          if (res.ok) {
+            setSeeded(true)
+            setLoading(false)
+            return true
+          }
+          let detail = `HTTP ${res.status}`
+          try {
+            const body = (await res.json()) as { error?: string }
+            if (body?.error) detail = body.error
+          } catch {
+            // non-JSON error body (e.g. a gateway timeout page)
+          }
+          throw new Error(detail)
+        })().catch((err: unknown) => {
+          const message = err instanceof Error ? err.message : String(err)
+          setError(message)
+          setLoading(false)
+          throw err
+        }),
+        {
+          loading: 'Seeding with data....',
+          success: <SuccessMessage />,
+          error: (err: unknown) =>
+            `Seeding failed: ${err instanceof Error ? err.message : String(err)}`,
+        },
+      )
     },
-    [loading, seeded, error],
+    [loading, seeded],
   )
 
   let message = ''

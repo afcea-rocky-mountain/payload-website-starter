@@ -26,13 +26,26 @@ export default buildConfig({
   admin: {
     components: {
       beforeDashboard: ['@/components/BeforeDashboard'],
+      beforeLogin: ['@/components/BeforeLogin'],
       graphics: {
         Logo: '@/components/AdminLogo#AdminLogo',
         Icon: '@/components/AdminLogo#AdminIcon',
       },
     },
+    // Replace every trace of default Payload branding (tab icon, share card, titles).
     meta: {
       titleSuffix: ' · AFCEA Rocky Mountain',
+      description: 'Content management for the AFCEA Rocky Mountain Chapter website.',
+      icons: [
+        { rel: 'icon', type: 'image/svg+xml', url: '/favicon.svg' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', url: '/favicon-32.png' },
+      ],
+      openGraph: {
+        siteName: 'AFCEA Rocky Mountain Chapter',
+        description: 'Content management for the AFCEA Rocky Mountain Chapter website.',
+        images: [{ url: '/og.png', width: 1200, height: 630, alt: 'AFCEA Rocky Mountain Chapter' }],
+      },
+      robots: 'noindex, nofollow',
     },
     importMap: {
       baseDir: path.resolve(dirname),
@@ -47,6 +60,7 @@ export default buildConfig({
     },
   },
   editor: defaultLexical,
+  serverURL: getServerSideURL(),
   db: vercelPostgresAdapter({
     pool: {
       connectionString: process.env.POSTGRES_URL || '',

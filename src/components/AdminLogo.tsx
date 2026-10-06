@@ -17,9 +17,18 @@ export const AdminLogo: React.FC = () => (
   </div>
 )
 
+/** Same mark as public/favicon.svg so the admin, tab icon and site all share one brand. */
 export const AdminIcon: React.FC = () => (
-  <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true">
-    <rect width="28" height="28" fill="#103C6D" />
-    <polygon points="0,20 28,6 28,0 0,0" fill="#c9a85c" opacity="0.9" />
+  <svg width="28" height="28" viewBox="0 0 32 32" aria-hidden="true">
+    <circle cx="16" cy="16" r="15" fill="#020668" />
+    <circle cx="16" cy="16" r="10" fill="none" stroke="#c9a85c" strokeWidth="1" />
+    <circle cx="16" cy="16" r="6" fill="none" stroke="#c9a85c" strokeWidth="1" opacity=".75" />
+    <path
+      d="M16 4 L24 22 L8 22 Z"
+      fill="none"
+      stroke="#c9a85c"
+      strokeWidth="1.5"
+      strokeLinejoin="round"
+    />
   </svg>
 )
