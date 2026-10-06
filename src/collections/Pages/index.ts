@@ -2,11 +2,21 @@ import type { CollectionConfig } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
-import { Archive } from '../../blocks/ArchiveBlock/config'
-import { CallToAction } from '../../blocks/CallToAction/config'
 import { Content } from '../../blocks/Content/config'
 import { FormBlock } from '../../blocks/Form/config'
 import { MediaBlock } from '../../blocks/MediaBlock/config'
+import { MissionPillars } from '../../blocks/MissionPillars/config'
+import { FeaturedEvent } from '../../blocks/FeaturedEvent/config'
+import { StemImpact } from '../../blocks/StemImpact/config'
+import { PromoBand } from '../../blocks/PromoBand/config'
+import { CtaBand } from '../../blocks/CtaBand/config'
+import { EventsGrid } from '../../blocks/EventsGrid/config'
+import { LeadershipBoard } from '../../blocks/LeadershipBoard/config'
+import { StemPrograms } from '../../blocks/StemPrograms/config'
+import { Eligibility } from '../../blocks/Eligibility/config'
+import { ProposeProgram } from '../../blocks/ProposeProgram/config'
+import { ContactBand } from '../../blocks/ContactBand/config'
+import { ZeffyEmbed } from '../../blocks/ZeffyEmbed/config'
 import { hero } from '@/heros/config'
 import { slugField } from 'payload'
 import { populatePublishedAt } from '../../hooks/populatePublishedAt'
@@ -38,6 +48,7 @@ export const Pages: CollectionConfig<'pages'> = {
   },
   admin: {
     defaultColumns: ['title', 'slug', 'updatedAt'],
+    group: 'Site',
     livePreview: {
       url: ({ data, req }) =>
         generatePreviewPath({
@@ -72,7 +83,23 @@ export const Pages: CollectionConfig<'pages'> = {
             {
               name: 'layout',
               type: 'blocks',
-              blocks: [CallToAction, Content, MediaBlock, Archive, FormBlock],
+              blocks: [
+                MissionPillars,
+                FeaturedEvent,
+                EventsGrid,
+                StemImpact,
+                StemPrograms,
+                Eligibility,
+                PromoBand,
+                CtaBand,
+                ProposeProgram,
+                ContactBand,
+                LeadershipBoard,
+                ZeffyEmbed,
+                Content,
+                MediaBlock,
+                FormBlock,
+              ],
               required: true,
               admin: {
                 initCollapsed: true,

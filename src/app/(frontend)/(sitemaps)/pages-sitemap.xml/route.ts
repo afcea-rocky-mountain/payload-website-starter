@@ -31,16 +31,20 @@ const getPagesSitemap = unstable_cache(
 
     const dateFallback = new Date().toISOString()
 
-    const defaultSitemap = [
-      {
-        loc: `${SITE_URL}/search`,
-        lastmod: dateFallback,
-      },
-      {
-        loc: `${SITE_URL}/posts`,
-        lastmod: dateFallback,
-      },
-    ]
+    const events = await payload.find({
+      collection: 'events',
+      overrideAccess: false,
+      draft: false,
+      depth: 0,
+      limit: 1000,
+      pagination: false,
+      where: { _status: { equals: 'published' }, hidden: { not_equals: true } },
+      select: { slug: true, updatedAt: true },
+    })
+
+    const defaultSitemap = events.docs
+      .filter((e) => Boolean(e?.slug))
+      .map((e) => ({ loc: `${SITE_URL}/events/${e.slug}`, lastmod: e.updatedAt || dateFallback }))
 
     const sitemap = results.docs
       ? results.docs

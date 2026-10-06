@@ -1,16 +1,24 @@
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
-import { FlatCompat } from '@eslint/eslintrc'
+import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
+import nextTypescript from 'eslint-config-next/typescript'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-})
+// Hydration-safe "mounted" state and canvas refs are intentional in the theme/Topo code,
+// so the React Compiler rules are warnings here. They must be overridden in the config
+// object that registers the react-hooks plugin.
+const relaxReactHooks = (cfg) =>
+  cfg.plugins?.['react-hooks']
+    ? {
+        ...cfg,
+        rules: {
+          ...cfg.rules,
+          'react-hooks/set-state-in-effect': 'warn',
+          'react-hooks/refs': 'warn',
+        },
+      }
+    : cfg
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextCoreWebVitals.map(relaxReactHooks),
+  ...nextTypescript,
   {
     rules: {
       '@typescript-eslint/ban-ts-comment': 'warn',
@@ -31,7 +39,7 @@ const eslintConfig = [
     },
   },
   {
-    ignores: ['.next/', 'src/payload-types.ts', 'src/payload-generated-schema.ts'],
+    ignores: ['.next/', 'src/payload-types.ts', 'src/payload-generated-schema.ts', 'src/app/(payload)/admin/importMap.js'],
   },
 ]
 

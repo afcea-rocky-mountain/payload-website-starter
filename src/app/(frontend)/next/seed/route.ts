@@ -2,6 +2,7 @@ import { createLocalReq, getPayload } from 'payload'
 import { seed } from '@/endpoints/seed'
 import config from '@payload-config'
 import { headers } from 'next/headers'
+import { revalidatePath, revalidateTag } from 'next/cache'
 
 export const maxDuration = 60 // This function can run for a maximum of 60 seconds
 
@@ -22,6 +23,12 @@ export async function POST(): Promise<Response> {
     const payloadReq = await createLocalReq({ user }, payload)
 
     await seed({ payload, req: payloadReq })
+
+    // The seed writes with revalidation disabled; flush every cache it touched.
+    for (const tag of ['global_header', 'global_footer', 'global_site-settings', 'events', 'pages-sitemap', 'redirects']) {
+      revalidateTag(tag, 'max')
+    }
+    revalidatePath('/', 'layout')
 
     return Response.json({ success: true })
   } catch (e) {

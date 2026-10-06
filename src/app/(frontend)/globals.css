@@ -1,5 +1,4 @@
 @import 'tailwindcss';
-@import 'tw-animate-css';
 
 @config '../../../tailwind.config.mjs';
 
@@ -10,20 +9,9 @@
 @custom-variant xl (@media (width >= theme(--breakpoint-xl)));
 @custom-variant 2xl (@media (width >= theme(--breakpoint-2xl)));
 
-@layer base {
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    font-weight: unset;
-    font-size: unset;
-  }
-}
-
 @plugin "@tailwindcss/typography";
 
+/* Classes composed at runtime by the form block / admin bar. */
 @source inline("lg:col-span-4");
 @source inline("lg:col-span-6");
 @source inline("lg:col-span-8");
@@ -37,16 +25,252 @@
 @source inline("border-warning");
 @source inline("bg-warning/30");
 
+/* ------------------------------------------------------------------ */
+/* AFCEA Rocky Mountain design tokens                                  */
+/* ------------------------------------------------------------------ */
 @theme {
   --breakpoint-sm: 40rem;
   --breakpoint-md: 48rem;
   --breakpoint-lg: 64rem;
   --breakpoint-xl: 80rem;
   --breakpoint-2xl: 86rem;
-  --font-mono: var(--font-geist-mono);
-  --font-sans: var(--font-geist-sans);
+
+  --color-navy-50: #eef0f7;
+  --color-navy-100: #d6dbeb;
+  --color-navy-200: #a8b2d4;
+  --color-navy-300: #6e7bb0;
+  --color-navy-400: #3a4a8a;
+  --color-navy-500: #1a2670;
+  --color-navy-600: #0a1166;
+  --color-navy-700: #020668;
+  --color-navy-800: #02054a;
+  --color-navy-900: #01032d;
+
+  --color-chathams-50: #eef3f9;
+  --color-chathams-100: #d2dfee;
+  --color-chathams-200: #a6bdde;
+  --color-chathams-300: #6f93c4;
+  --color-chathams-400: #3e6ba8;
+  --color-chathams-500: #1f4f8e;
+  --color-chathams-600: #103c6d;
+  --color-chathams-700: #0d3158;
+  --color-chathams-800: #0a2645;
+  --color-chathams-900: #06182e;
+
+  --color-ice: #e8eef7;
+  --color-gold: #c9a85c;
+  --color-gold-hover: #b89548;
+
+  --font-sans:
+    var(--font-inter), 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --font-display:
+    var(--font-fraunces), 'Fraunces', 'Source Serif 4', ui-serif, Georgia, Cambria,
+    'Times New Roman', Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --animate-fade-up: fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-fade-in: fade-in 0.5s ease-out both;
+  --animate-slow-pulse: slow-pulse 6s ease-in-out infinite;
 }
 
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes slow-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Semantic vars used by the Payload admin bar, form block and shadcn  */
+/* primitives. Mapped onto the AFCEA palette.                           */
+/* ------------------------------------------------------------------ */
+:root {
+  --background: #e8eef7;
+  --foreground: #01032d;
+  --card: #ffffff;
+  --card-foreground: #01032d;
+  --popover: #ffffff;
+  --popover-foreground: #01032d;
+  --primary: #103c6d;
+  --primary-foreground: #e8eef7;
+  --secondary: #d2dfee;
+  --secondary-foreground: #01032d;
+  --muted: #d6dbeb;
+  --muted-foreground: rgba(2, 5, 74, 0.7);
+  --accent: #c9a85c;
+  --accent-foreground: #01032d;
+  --destructive: #b42318;
+  --destructive-foreground: #ffffff;
+  --border: rgba(1, 3, 45, 0.12);
+  --input: rgba(1, 3, 45, 0.18);
+  --ring: #c9a85c;
+  --radius: 0.25rem;
+  --success: #cfe6d8;
+  --warning: #f3e6c2;
+  --error: #f4cfcf;
+}
+
+[data-theme='dark'] {
+  /*
+   * Dark mode primary dark blue: #103C6D (chathams-600).
+   * Overriding --color-navy-900 in the dark scope lets every existing
+   * `bg-navy-900`, `dark:bg-navy-900`, `border-navy-900/X`, etc. resolve to
+   * the new value without touching individual call-sites.
+   */
+  --color-navy-900: #103c6d;
+
+  --background: #103c6d;
+  --foreground: #e8eef7;
+  --card: #0d3158;
+  --card-foreground: #e8eef7;
+  --popover: #0d3158;
+  --popover-foreground: #e8eef7;
+  --primary: #c9a85c;
+  --primary-foreground: #01032d;
+  --secondary: #0a2645;
+  --secondary-foreground: #e8eef7;
+  --muted: #0a2645;
+  --muted-foreground: rgba(232, 238, 247, 0.7);
+  --accent: #c9a85c;
+  --accent-foreground: #01032d;
+  --destructive: #f08c8c;
+  --destructive-foreground: #01032d;
+  --border: rgba(232, 238, 247, 0.12);
+  --input: rgba(232, 238, 247, 0.2);
+  --ring: #c9a85c;
+  --success: #1f4f3e;
+  --warning: #4a3d1a;
+  --error: #5a1f1f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  :root {
+    color-scheme: light dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  [data-theme='light'] {
+    color-scheme: light;
+  }
+  [data-theme='dark'] {
+    color-scheme: dark;
+  }
+  html,
+  body {
+    height: 100%;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    margin: 0;
+    overflow-x: hidden;
+    font-family: var(--font-sans);
+    background-color: var(--color-ice);
+    color: var(--color-navy-900);
+  }
+  /* Prevent iOS Safari auto-zoom when focusing form fields. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+  [data-theme='dark'] body {
+    background-color: var(--color-navy-900);
+    color: #f4f6fb;
+  }
+  ::selection {
+    background: var(--color-gold);
+    color: var(--color-navy-900);
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+    font-weight: 600;
+  }
+  * {
+    border-color: var(--border);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Utilities                                                           */
+/* ------------------------------------------------------------------ */
 @layer utilities {
   .container {
     width: 100%;
@@ -84,136 +308,111 @@
       max-width: var(--breakpoint-2xl);
     }
   }
-}
 
-:root {
-  --background: oklch(100% 0 0deg);
-  --foreground: oklch(14.5% 0 0deg);
-  --card: oklch(96.5% 0.005 265deg);
-  --card-foreground: oklch(14.5% 0 0deg);
-  --popover: oklch(100% 0 0deg);
-  --popover-foreground: oklch(14.5% 0 0deg);
-  --primary: oklch(20.5% 0 0deg);
-  --primary-foreground: oklch(98.5% 0 0deg);
-  --secondary: oklch(97% 0 0deg);
-  --secondary-foreground: oklch(20.5% 0 0deg);
-  --muted: oklch(97% 0 0deg);
-  --muted-foreground: oklch(55.6% 0 0deg);
-  --accent: oklch(97% 0 0deg);
-  --accent-foreground: oklch(20.5% 0 0deg);
-  --destructive: oklch(57.7% 0.245 27.325deg);
-  --destructive-foreground: oklch(57.7% 0.245 27.325deg);
-  --border: oklch(92.2% 0 0deg);
-  --input: oklch(92.2% 0 0deg);
-  --ring: oklch(70.8% 0 0deg);
-  --chart-1: oklch(64.6% 0.222 41.116deg);
-  --chart-2: oklch(60% 0.118 184.704deg);
-  --chart-3: oklch(39.8% 0.07 227.392deg);
-  --chart-4: oklch(82.8% 0.189 84.429deg);
-  --chart-5: oklch(76.9% 0.188 70.08deg);
-  --radius: 0.625rem;
-  --sidebar: oklch(98.5% 0 0deg);
-  --sidebar-foreground: oklch(14.5% 0 0deg);
-  --sidebar-primary: oklch(20.5% 0 0deg);
-  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
-  --sidebar-accent: oklch(97% 0 0deg);
-  --sidebar-accent-foreground: oklch(20.5% 0 0deg);
-  --sidebar-border: oklch(92.2% 0 0deg);
-  --sidebar-ring: oklch(70.8% 0 0deg);
-  --success: oklch(78% 0.08 200deg);
-  --warning: oklch(89% 0.1 75deg);
-  --error: oklch(75% 0.15 25deg);
-}
-
-[data-theme='dark'] {
-  --background: oklch(14.5% 0 0deg);
-  --foreground: oklch(98.5% 0 0deg);
-  --card: oklch(17% 0 0deg);
-  --card-foreground: oklch(98.5% 0 0deg);
-  --popover: oklch(14.5% 0 0deg);
-  --popover-foreground: oklch(98.5% 0 0deg);
-  --primary: oklch(98.5% 0 0deg);
-  --primary-foreground: oklch(20.5% 0 0deg);
-  --secondary: oklch(26.9% 0 0deg);
-  --secondary-foreground: oklch(98.5% 0 0deg);
-  --muted: oklch(26.9% 0 0deg);
-  --muted-foreground: oklch(70.8% 0 0deg);
-  --accent: oklch(26.9% 0 0deg);
-  --accent-foreground: oklch(98.5% 0 0deg);
-  --destructive: oklch(39.6% 0.141 25.723deg);
-  --destructive-foreground: oklch(63.7% 0.237 25.331deg);
-  --border: oklch(26.9% 0 0deg);
-  --input: oklch(26.9% 0 0deg);
-  --ring: oklch(43.9% 0 0deg);
-  --chart-1: oklch(48.8% 0.243 264.376deg);
-  --chart-2: oklch(69.6% 0.17 162.48deg);
-  --chart-3: oklch(76.9% 0.188 70.08deg);
-  --chart-4: oklch(62.7% 0.265 303.9deg);
-  --chart-5: oklch(64.5% 0.246 16.439deg);
-  --sidebar: oklch(20.5% 0 0deg);
-  --sidebar-foreground: oklch(98.5% 0 0deg);
-  --sidebar-primary: oklch(48.8% 0.243 264.376deg);
-  --sidebar-primary-foreground: oklch(98.5% 0 0deg);
-  --sidebar-accent: oklch(26.9% 0 0deg);
-  --sidebar-accent-foreground: oklch(98.5% 0 0deg);
-  --sidebar-border: oklch(26.9% 0 0deg);
-  --sidebar-ring: oklch(43.9% 0 0deg);
-  --success: oklch(28% 0.1 200deg);
-  --warning: oklch(35% 0.08 70deg);
-  --error: oklch(45% 0.1 25deg);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --color-error: var(--error);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
+  .grain {
+    position: relative;
   }
-  body {
-    @apply bg-background text-foreground min-h-[100vh] flex flex-col;
+  .grain::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.06;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /*
+   * Chamfered card — square panel with a 45° cut at the bottom-left.
+   *
+   * The utility owns the perimeter border AND the diagonal border so every
+   * chamfered card looks uniform regardless of its own classes. The line is
+   * drawn entirely on the visible side of the cut: ::before is the outer
+   * shape in the border color, ::after the inner fill inset by 1px.
+   *
+   * --chamfer-border drives both the perimeter and the diagonal so they
+   * always match. Overridden per theme below.
+   *
+   * NOTE: clip-path masks box-shadow. Lean on borders + subtle bg contrast
+   * for depth instead of shadow when chamfered.
+   */
+  .chamfered-card {
+    --chamfer: 2rem;
+    --chamfer-border: color-mix(in srgb, var(--color-navy-900) 12%, transparent);
+    --chamfer-border-hover: color-mix(in srgb, var(--color-gold) 55%, transparent);
+    --chamfer-fill: white;
+    position: relative;
+    isolation: isolate;
+    background-color: transparent !important;
+    border: 0 !important;
+    border-radius: 0;
+  }
+  .chamfered-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: var(--chamfer-border);
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% 100%,
+      var(--chamfer) 100%,
+      0 calc(100% - var(--chamfer))
+    );
+    z-index: -2;
+    transition: background-color 240ms ease;
+  }
+  .chamfered-card:hover::before {
+    background-color: var(--chamfer-border-hover);
+  }
+  /* ::after is the inner chamfered shape painted in the card fill + a
+     cursor-following bloom radial. --bloom-x / --bloom-y are set per-card
+     by <ChamferBloom /> mounted in the root layout. The default -999px
+     offscreen position keeps the bloom invisible until the pointer enters. */
+  .chamfered-card::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background:
+      radial-gradient(
+        circle 520px at var(--bloom-x, -999px) var(--bloom-y, -999px),
+        var(--bloom-color, rgba(201, 168, 92, 0.14)),
+        transparent 70%
+      ),
+      var(--chamfer-fill);
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% 100%,
+      var(--chamfer) 100%,
+      0 calc(100% - var(--chamfer))
+    );
+    z-index: -1;
+  }
+
+  [data-theme='dark'] .chamfered-card {
+    --chamfer-border: color-mix(in srgb, var(--color-ice) 12%, transparent);
+    --chamfer-border-hover: color-mix(in srgb, var(--color-gold) 50%, transparent);
+    --chamfer-fill: #103c6d;
+    --bloom-color: rgba(210, 223, 238, 0.1);
   }
 }
 
+/* Rich-text (Lexical) content inherits the site palette. */
+.payload-richtext {
+  --tw-prose-body: var(--color-navy-900);
+  --tw-prose-headings: var(--color-navy-900);
+  --tw-prose-links: var(--color-chathams-600);
+  --tw-prose-bold: var(--color-navy-900);
+}
+[data-theme='dark'] .payload-richtext {
+  --tw-prose-body: rgba(232, 238, 247, 0.85);
+  --tw-prose-headings: var(--color-ice);
+  --tw-prose-links: var(--color-gold);
+  --tw-prose-bold: var(--color-ice);
+}
+
+/* FOUC guard: InitTheme sets data-theme before paint. */
 html {
   opacity: 0;
 }

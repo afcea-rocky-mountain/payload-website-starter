@@ -2,17 +2,20 @@ import type { Field, GroupField } from 'payload'
 
 import deepMerge from '@/utilities/deepMerge'
 
-export type LinkAppearances = 'default' | 'outline'
+/**
+ * Button appearances used across the AFCEA site.
+ *   primary    — gold-filled, the page's primary CTA
+ *   secondary  — glassy outline that floats over Topo backgrounds
+ *   solidDark  — navy-filled in light mode, gold in dark
+ *   link       — plain text link with arrow
+ */
+export type LinkAppearances = 'primary' | 'secondary' | 'solidDark' | 'link'
 
 export const appearanceOptions: Record<LinkAppearances, { label: string; value: string }> = {
-  default: {
-    label: 'Default',
-    value: 'default',
-  },
-  outline: {
-    label: 'Outline',
-    value: 'outline',
-  },
+  primary: { label: 'Primary (gold)', value: 'primary' },
+  secondary: { label: 'Secondary (outline)', value: 'secondary' },
+  solidDark: { label: 'Solid dark (navy / gold)', value: 'solidDark' },
+  link: { label: 'Text link', value: 'link' },
 }
 
 type LinkType = (options?: {
@@ -75,7 +78,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
         condition: (_, siblingData) => siblingData?.type === 'reference',
       },
       label: 'Document to link to',
-      relationTo: ['pages', 'posts'],
+      relationTo: ['pages', 'events'],
       required: true,
     },
     {
@@ -83,6 +86,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       type: 'text',
       admin: {
         condition: (_, siblingData) => siblingData?.type === 'custom',
+        description: 'Full URL, a path like /events, a mailto: address, or an #anchor.',
       },
       label: 'Custom URL',
       required: true,
@@ -118,7 +122,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
   }
 
   if (appearances !== false) {
-    let appearanceOptionsToUse = [appearanceOptions.default, appearanceOptions.outline]
+    let appearanceOptionsToUse = Object.values(appearanceOptions)
 
     if (appearances) {
       appearanceOptionsToUse = appearances.map((appearance) => appearanceOptions[appearance])
@@ -130,7 +134,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
       admin: {
         description: 'Choose how the link should be rendered.',
       },
-      defaultValue: 'default',
+      defaultValue: appearanceOptionsToUse[0]?.value ?? 'primary',
       options: appearanceOptionsToUse,
     })
   }

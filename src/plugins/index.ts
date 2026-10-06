@@ -1,31 +1,30 @@
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
-import { nestedDocsPlugin } from '@payloadcms/plugin-nested-docs'
 import { redirectsPlugin } from '@payloadcms/plugin-redirects'
 import { seoPlugin } from '@payloadcms/plugin-seo'
-import { searchPlugin } from '@payloadcms/plugin-search'
 import { Plugin } from 'payload'
 import { revalidateRedirects } from '@/hooks/revalidateRedirects'
 import { GenerateTitle, GenerateURL } from '@payloadcms/plugin-seo/types'
 import { FixedToolbarFeature, HeadingFeature, lexicalEditor } from '@payloadcms/richtext-lexical'
-import { searchFields } from '@/search/fieldOverrides'
-import { beforeSyncWithSearch } from '@/search/beforeSync'
 
-import { Page, Post } from '@/payload-types'
+import { Page, Event } from '@/payload-types'
 import { getServerSideURL } from '@/utilities/getURL'
 
-const generateTitle: GenerateTitle<Post | Page> = ({ doc }) => {
-  return doc?.title ? `${doc.title} | Payload Website Template` : 'Payload Website Template'
+export const SITE_NAME = 'AFCEA Rocky Mountain Chapter'
+
+const generateTitle: GenerateTitle<Event | Page> = ({ doc }) => {
+  return doc?.title ? `${doc.title} | ${SITE_NAME}` : SITE_NAME
 }
 
-const generateURL: GenerateURL<Post | Page> = ({ doc }) => {
+const generateURL: GenerateURL<Event | Page> = ({ doc, collectionSlug }) => {
   const url = getServerSideURL()
-
-  return doc?.slug ? `${url}/${doc.slug}` : url
+  if (!doc?.slug) return url
+  if (collectionSlug === 'events') return `${url}/events/${doc.slug}`
+  return doc.slug === 'home' ? url : `${url}/${doc.slug}`
 }
 
 export const plugins: Plugin[] = [
   redirectsPlugin({
-    collections: ['pages', 'posts'],
+    collections: ['pages', 'events'],
     overrides: {
       // @ts-expect-error - This is a valid override, mapped fields don't resolve to the same type
       fields: ({ defaultFields }) => {
@@ -44,11 +43,8 @@ export const plugins: Plugin[] = [
       hooks: {
         afterChange: [revalidateRedirects],
       },
+      admin: { group: 'Site' },
     },
-  }),
-  nestedDocsPlugin({
-    collections: ['categories'],
-    generateURL: (docs) => docs.reduce((url, doc) => `${url}/${doc.slug}`, ''),
   }),
   seoPlugin({
     generateTitle,
@@ -59,6 +55,7 @@ export const plugins: Plugin[] = [
       payment: false,
     },
     formOverrides: {
+      admin: { group: 'Site' },
       fields: ({ defaultFields }) => {
         return defaultFields.map((field) => {
           if ('name' in field && field.name === 'confirmationMessage') {
@@ -79,14 +76,6 @@ export const plugins: Plugin[] = [
         })
       },
     },
-  }),
-  searchPlugin({
-    collections: ['posts'],
-    beforeSync: beforeSyncWithSearch,
-    searchOverrides: {
-      fields: ({ defaultFields }) => {
-        return [...defaultFields, ...searchFields]
-      },
-    },
+    formSubmissionOverrides: { admin: { group: 'Site' } },
   }),
 ]

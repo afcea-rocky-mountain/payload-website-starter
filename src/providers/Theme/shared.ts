@@ -1,8 +1,9 @@
 import type { Theme } from './types'
 
-export const themeLocalStorageKey = 'payload-theme'
+/** Same key the original site used, so returning visitors keep their choice. */
+export const themeLocalStorageKey = 'theme'
 
-export const defaultTheme = 'light'
+export const defaultTheme: Theme = 'light'
 
 export const getImplicitPreference = (): Theme | null => {
   const mediaQuery = '(prefers-color-scheme: dark)'

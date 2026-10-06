@@ -1,7 +1,7 @@
 {
-  "name": "with-vercel-website",
+  "name": "afcea-rocky-mtn-payload",
   "version": "1.0.0",
-  "description": "Website template for Payload",
+  "description": "AFCEA Rocky Mountain Chapter website \u2014 Payload CMS + Next.js",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -20,7 +20,9 @@
     "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
     "test": "pnpm run test:int && pnpm run test:e2e",
     "test:e2e": "cross-env NODE_OPTIONS=\"--no-deprecation --import=tsx/esm\" playwright test --config=playwright.config.ts",
-    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts"
+    "test:int": "cross-env NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
+    "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run ./src/endpoints/seed/run.ts",
+    "luma:sync": "cross-env NODE_OPTIONS=--no-deprecation payload run ./src/luma/run.ts"
   },
   "dependencies": {
     "@payloadcms/admin-bar": "3.90.0",
@@ -54,7 +56,8 @@
     "react-dom": "19.2.6",
     "react-hook-form": "7.71.1",
     "sharp": "0.35.4",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "framer-motion": "^12.40.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -88,7 +91,14 @@
     "onlyBuiltDependencies": [
       "sharp",
       "esbuild",
-      "unrs-resolver"
-    ]
+      "unrs-resolver",
+      "bufferutil"
+    ],
+    "allowBuilds": {
+      "sharp": true,
+      "esbuild": true,
+      "unrs-resolver": true,
+      "bufferutil": true
+    }
   }
 }

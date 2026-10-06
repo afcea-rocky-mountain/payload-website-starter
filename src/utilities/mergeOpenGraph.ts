@@ -1,16 +1,24 @@
 import type { Metadata } from 'next'
 import { getServerSideURL } from './getURL'
 
+export const SITE_NAME = 'AFCEA Rocky Mountain Chapter'
+export const SITE_DESCRIPTION =
+  'AFCEA Rocky Mountain Chapter — unifying military, government, industry, and academia across Colorado, Wyoming, and New Mexico to advance STEM education and the cyber & defense community.'
+export const OG_DESCRIPTION =
+  'Unifying the Rocky Mountain cyber and defense community. Events, leadership, and STEM grants.'
+
 const defaultOpenGraph: Metadata['openGraph'] = {
   type: 'website',
-  description: 'An open-source website built with Payload and Next.js.',
+  description: OG_DESCRIPTION,
   images: [
     {
-      url: `${getServerSideURL()}/website-template-OG.webp`,
+      url: `${getServerSideURL()}/og.png`,
+      width: 1200,
+      height: 630,
     },
   ],
-  siteName: 'Payload Website Template',
-  title: 'Payload Website Template',
+  siteName: SITE_NAME,
+  title: SITE_NAME,
 }
 
 export const mergeOpenGraph = (og?: Metadata['openGraph']): Metadata['openGraph'] => {

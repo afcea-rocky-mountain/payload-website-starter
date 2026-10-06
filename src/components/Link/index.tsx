@@ -1,66 +1,85 @@
-import { Button, type ButtonProps } from '@/components/ui/button'
-import { cn } from '@/utilities/ui'
-import Link from 'next/link'
 import React from 'react'
+import Link from 'next/link'
+import { ArrowRight, ArrowUpRight } from 'lucide-react'
 
-import type { Page, Post } from '@/payload-types'
+import type { Event, Page } from '@/payload-types'
+import Button, { type ButtonSize, type ButtonVariant } from '@/components/Button'
+import { cn } from '@/utilities/ui'
 
-type CMSLinkType = {
-  appearance?: 'inline' | ButtonProps['variant']
+export type CMSLinkType = {
+  appearance?: 'inline' | ButtonVariant | null
   children?: React.ReactNode
   className?: string
   label?: string | null
   newTab?: boolean | null
   reference?: {
-    relationTo: 'pages' | 'posts'
-    value: Page | Post | string | number
+    relationTo: 'pages' | 'events'
+    value: Page | Event | string | number
   } | null
-  size?: ButtonProps['size'] | null
+  size?: ButtonSize | null
   type?: 'custom' | 'reference' | null
   url?: string | null
+  /** Hide the trailing arrow icon. */
+  noIcon?: boolean
+  fullWidthOnMobile?: boolean
 }
 
+/** Resolve a CMS link field to an href. */
+export function resolveLinkHref(link: Pick<CMSLinkType, 'type' | 'reference' | 'url'>): string | null {
+  const { type, reference, url } = link
+  if (type === 'reference' && reference && typeof reference.value === 'object' && reference.value?.slug) {
+    const slug = reference.value.slug
+    if (reference.relationTo === 'events') return `/events/${slug}`
+    return slug === 'home' ? '/' : `/${slug}`
+  }
+  return url || null
+}
+
+const isExternal = (href: string) => /^(https?:)?\/\//i.test(href)
+
 export const CMSLink: React.FC<CMSLinkType> = (props) => {
-  const {
-    type,
-    appearance = 'inline',
-    children,
-    className,
-    label,
-    newTab,
-    reference,
-    size: sizeFromProps,
-    url,
-  } = props
-
-  const href =
-    type === 'reference' && typeof reference?.value === 'object' && reference.value.slug
-      ? `${reference?.relationTo !== 'pages' ? `/${reference?.relationTo}` : ''}/${
-          reference.value.slug
-        }`
-      : url
-
+  const { appearance = 'inline', children, className, label, newTab, size, noIcon, fullWidthOnMobile } = props
+  const href = resolveLinkHref(props)
   if (!href) return null
 
-  const size = appearance === 'link' ? 'clear' : sizeFromProps
-  const newTabProps = newTab ? { rel: 'noopener noreferrer', target: '_blank' } : {}
+  const external = isExternal(href)
+  const openNew = Boolean(newTab) || external
 
-  /* Ensure we don't break any styles set by richText */
-  if (appearance === 'inline') {
+  if (appearance === 'inline' || !appearance) {
+    const Comp = external ? 'a' : Link
     return (
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
-        {label && label}
-        {children && children}
-      </Link>
+      <Comp
+        href={href}
+        className={cn(className)}
+        {...(openNew ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
+      >
+        {label}
+        {children}
+      </Comp>
     )
   }
 
+  const Icon = external ? ArrowUpRight : ArrowRight
   return (
-    <Button asChild className={className} size={size} variant={appearance}>
-      <Link className={cn(className)} href={href || url || ''} {...newTabProps}>
-        {label && label}
-        {children && children}
-      </Link>
+    <Button
+      href={href}
+      newTab={openNew}
+      variant={appearance}
+      size={size ?? 'md'}
+      className={className}
+      fullWidthOnMobile={fullWidthOnMobile}
+    >
+      {label}
+      {children}
+      {!noIcon && (
+        <Icon
+          className={cn(
+            'h-4 w-4 transition-transform duration-300',
+            external ? 'group-hover:translate-x-0.5 group-hover:-translate-y-0.5' : 'group-hover:translate-x-0.5',
+          )}
+          aria-hidden="true"
+        />
+      )}
     </Button>
   )
 }

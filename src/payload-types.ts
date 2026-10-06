@@ -68,14 +68,14 @@ export interface Config {
   blocks: {};
   collections: {
     pages: Page;
-    posts: Post;
+    events: Event;
+    'board-members': BoardMember;
+    'stem-programs': StemProgram;
     media: Media;
-    categories: Category;
     users: User;
     redirects: Redirect;
     forms: Form;
     'form-submissions': FormSubmission;
-    search: Search;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
@@ -90,14 +90,14 @@ export interface Config {
   };
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
-    posts: PostsSelect<false> | PostsSelect<true>;
+    events: EventsSelect<false> | EventsSelect<true>;
+    'board-members': BoardMembersSelect<false> | BoardMembersSelect<true>;
+    'stem-programs': StemProgramsSelect<false> | StemProgramsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
-    search: SearchSelect<false> | SearchSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
@@ -112,10 +112,12 @@ export interface Config {
   globals: {
     header: Header;
     footer: Footer;
+    'site-settings': SiteSetting;
   };
   globalsSelect: {
     header: HeaderSelect<false> | HeaderSelect<true>;
     footer: FooterSelect<false> | FooterSelect<true>;
+    'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
   };
   locale: null;
   widgets: {
@@ -124,6 +126,7 @@ export interface Config {
   user: User;
   jobs: {
     tasks: {
+      syncLumaEvents: TaskSyncLumaEvents;
       schedulePublish: TaskSchedulePublish;
       inline: {
         input: unknown;
@@ -159,22 +162,18 @@ export interface Page {
   id: number;
   title: string;
   hero: {
-    type: 'none' | 'highImpact' | 'mediumImpact' | 'lowImpact';
-    richText?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
+    type: 'none' | 'topo';
+    variant?: ('tall' | 'short') | null;
+    eyebrow?: string | null;
+    /**
+     * Main headline.
+     */
+    title?: string | null;
+    /**
+     * Optional. A phrase inside the title to render in the accent color (blue in light mode, gold in dark). Must match the title text exactly.
+     */
+    highlight?: string | null;
+    subtitle?: string | null;
     links?:
       | {
           link: {
@@ -186,22 +185,41 @@ export interface Page {
                   value: number | Page;
                 } | null)
               | ({
-                  relationTo: 'posts';
-                  value: number | Post;
+                  relationTo: 'events';
+                  value: number | Event;
                 } | null);
+            /**
+             * Full URL, a path like /events, a mailto: address, or an #anchor.
+             */
             url?: string | null;
             label: string;
             /**
              * Choose how the link should be rendered.
              */
-            appearance?: ('default' | 'outline') | null;
+            appearance?: ('primary' | 'secondary' | 'solidDark' | 'link') | null;
           };
           id?: string | null;
         }[]
       | null;
-    media?: (number | null) | Media;
+    showLocationPulse?: boolean | null;
   };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
+  layout: (
+    | MissionPillarsBlock
+    | FeaturedEventBlock
+    | EventsGridBlock
+    | StemImpactBlock
+    | StemProgramsBlock
+    | EligibilityBlock
+    | PromoBandBlock
+    | CtaBandBlock
+    | ProposeProgramBlock
+    | ContactBandBlock
+    | LeadershipBoardBlock
+    | ZeffyEmbedBlock
+    | ContentBlock
+    | MediaBlock
+    | FormBlock
+  )[];
   meta?: {
     title?: string | null;
     /**
@@ -222,13 +240,42 @@ export interface Page {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
+ * via the `definition` "events".
  */
-export interface Post {
+export interface Event {
   id: number;
   title: string;
-  heroImage?: (number | null) | Media;
-  content: {
+  startAt: string;
+  endAt?: string | null;
+  timezone?: string | null;
+  /**
+   * Optional human override, e.g. "February 2–5, 2026" or "Date TBA". Leave blank to format from the start date.
+   */
+  dateDisplay?: string | null;
+  /**
+   * Short venue line, e.g. "The Broadmoor, Colorado Springs, CO".
+   */
+  location?: string | null;
+  /**
+   * Full street address (optional).
+   */
+  address?: string | null;
+  /**
+   * RSVP link. Luma event page or any registration URL.
+   */
+  lumaUrl?: string | null;
+  /**
+   * Uploaded image. Takes priority over the Luma cover URL.
+   */
+  coverImage?: (number | null) | Media;
+  /**
+   * Cover image URL pulled from Luma.
+   */
+  coverUrl?: string | null;
+  /**
+   * Long description shown on the event page.
+   */
+  description?: {
     root: {
       type: string;
       children: {
@@ -242,9 +289,39 @@ export interface Post {
       version: number;
     };
     [k: string]: unknown;
+  } | null;
+  /**
+   * Show as the big card on the home and events pages.
+   */
+  featured?: boolean | null;
+  /**
+   * Keep in the CMS but hide from the website.
+   */
+  hidden?: boolean | null;
+  tag?: ('Flagship' | 'STEM' | 'Networking' | 'Symposium' | 'Social' | 'Emerging Leaders' | 'Awards') | null;
+  /**
+   * One or two sentences for cards. Luma does not provide this, so write it here.
+   */
+  blurb?: string | null;
+  /**
+   * Short bullet points shown beside a featured event (e.g. "Four days of strategic dialogue").
+   */
+  highlights?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  zeffy?: {
+    enabled?: boolean | null;
+    /**
+     * Zeffy ticketing or donation form URL.
+     */
+    url?: string | null;
+    buttonLabel?: string | null;
+    embed?: boolean | null;
+    height?: number | null;
   };
-  relatedPosts?: (number | Post)[] | null;
-  categories?: (number | Category)[] | null;
   meta?: {
     title?: string | null;
     /**
@@ -253,14 +330,12 @@ export interface Post {
     image?: (number | null) | Media;
     description?: string | null;
   };
-  publishedAt?: string | null;
-  authors?: (number | User)[] | null;
-  populatedAuthors?:
-    | {
-        id?: string | null;
-        name?: string | null;
-      }[]
-    | null;
+  source?: ('manual' | 'luma') | null;
+  /**
+   * Luma event api_id (evt-…).
+   */
+  lumaEventId?: string | null;
+  syncedAt?: string | null;
   /**
    * When enabled, the slug will auto-generate from the title field on save and autosave.
    */
@@ -292,7 +367,6 @@ export interface Media {
     };
     [k: string]: unknown;
   } | null;
-  _objectKey?: string | null;
   folder?: (number | null) | FolderInterface;
   updatedAt: string;
   createdAt: string;
@@ -392,75 +466,211 @@ export interface FolderInterface {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
+ * via the `definition` "MissionPillarsBlock".
  */
-export interface Category {
-  id: number;
-  title: string;
+export interface MissionPillarsBlock {
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Small uppercase label above the heading.
    */
-  generateSlug?: boolean | null;
-  slug: string;
-  parent?: (number | null) | Category;
-  breadcrumbs?:
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * Optional short paragraph under the heading.
+   */
+  intro?: string | null;
+  pillars?:
     | {
-        doc?: (number | null) | Category;
-        url?: string | null;
-        label?: string | null;
+        icon?:
+          | (
+              | 'shield'
+              | 'landmark'
+              | 'briefcase'
+              | 'graduationCap'
+              | 'calendar'
+              | 'sparkles'
+              | 'mapPin'
+              | 'mail'
+              | 'users'
+              | 'rocket'
+            )
+          | null;
+        title: string;
+        body: string;
         id?: string | null;
       }[]
     | null;
-  updatedAt: string;
-  createdAt: string;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'missionPillars';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "FeaturedEventBlock".
  */
-export interface User {
-  id: number;
-  name?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
+export interface FeaturedEventBlock {
+  /**
+   * Small uppercase label above the heading.
+   */
+  eyebrow?: string | null;
+  heading?: string | null;
+  mode?: ('auto' | 'manual') | null;
+  event?: (number | null) | Event;
+  viewAllLabel?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'featuredEvent';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EventsGridBlock".
+ */
+export interface EventsGridBlock {
+  showFeatured?: boolean | null;
+  /**
+   * Small uppercase label above the heading.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * Optional short paragraph under the heading.
+   */
+  intro?: string | null;
+  scope?: ('upcoming' | 'upcomingThenPast' | 'past') | null;
+  limit?: number | null;
+  allEventsLabel?: string | null;
+  emptyMessage?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'eventsGrid';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StemImpactBlock".
+ */
+export interface StemImpactBlock {
+  eyebrow?: string | null;
+  /**
+   * Leave blank to use the STEM total from Site Settings. Rendered as "$500K+" style.
+   */
+  statOverride?: number | null;
+  statCaption?: string | null;
+  aside?: string | null;
+  /**
+   * How many programs to show (ordered by the "order" field, featured first).
+   */
+  limit?: number | null;
+  linkLabel?: string | null;
+  /**
+   * Page the "See all" link goes to (usually STEM Grant).
+   */
+  linkPage?: (number | null) | Page;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'stemImpact';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StemProgramsBlock".
+ */
+export interface StemProgramsBlock {
+  /**
+   * Small uppercase label above the heading.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * Optional short paragraph under the heading.
+   */
+  intro?: string | null;
+  showImpactStat?: boolean | null;
+  impactEyebrow?: string | null;
+  impactCaption?: string | null;
+  impactBody?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'stemPrograms';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EligibilityBlock".
+ */
+export interface EligibilityBlock {
+  /**
+   * Small uppercase label above the heading.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * Optional short paragraph under the heading.
+   */
+  intro?: string | null;
+  items?:
     | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
+        text: string;
+        id?: string | null;
       }[]
     | null;
-  password?: string | null;
-  collection: 'users';
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'eligibility';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock".
+ * via the `definition` "PromoBandBlock".
  */
-export interface CallToActionBlock {
-  richText?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+export interface PromoBandBlock {
+  eyebrow?: string | null;
+  /**
+   * Heading segments joined by an accent "·" separator, e.g. RMCS26 · The Broadmoor · February 2–5, 2026
+   */
+  headingParts?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
+  body?: string | null;
+  link: {
+    type?: ('reference' | 'custom') | null;
+    newTab?: boolean | null;
+    reference?:
+      | ({
+          relationTo: 'pages';
+          value: number | Page;
+        } | null)
+      | ({
+          relationTo: 'events';
+          value: number | Event;
+        } | null);
+    /**
+     * Full URL, a path like /events, a mailto: address, or an #anchor.
+     */
+    url?: string | null;
+    label: string;
+    /**
+     * Choose how the link should be rendered.
+     */
+    appearance?: ('primary' | 'secondary' | 'solidDark') | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'promoBand';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBandBlock".
+ */
+export interface CtaBandBlock {
+  /**
+   * Small uppercase label above the heading.
+   */
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * Optional short paragraph under the heading.
+   */
+  intro?: string | null;
+  style?: ('centered' | 'splitTopo' | 'card') | null;
   links?:
     | {
         link: {
@@ -472,22 +682,138 @@ export interface CallToActionBlock {
                 value: number | Page;
               } | null)
             | ({
-                relationTo: 'posts';
-                value: number | Post;
+                relationTo: 'events';
+                value: number | Event;
               } | null);
+          /**
+           * Full URL, a path like /events, a mailto: address, or an #anchor.
+           */
           url?: string | null;
           label: string;
           /**
            * Choose how the link should be rendered.
            */
-          appearance?: ('default' | 'outline') | null;
+          appearance?: ('primary' | 'secondary' | 'solidDark' | 'link') | null;
         };
         id?: string | null;
       }[]
     | null;
   id?: string | null;
   blockName?: string | null;
-  blockType: 'cta';
+  blockType: 'ctaBand';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProposeProgramBlock".
+ */
+export interface ProposeProgramBlock {
+  /**
+   * HTML id so links like #apply can scroll here.
+   */
+  anchor?: string | null;
+  eyebrow?: string | null;
+  heading: string;
+  /**
+   * The email below is linked automatically where it appears in this text.
+   */
+  body?: string | null;
+  /**
+   * Leave blank to use the STEM contact email from Site Settings.
+   */
+  email?: string | null;
+  links?:
+    | {
+        link: {
+          type?: ('reference' | 'custom') | null;
+          newTab?: boolean | null;
+          reference?:
+            | ({
+                relationTo: 'pages';
+                value: number | Page;
+              } | null)
+            | ({
+                relationTo: 'events';
+                value: number | Event;
+              } | null);
+          /**
+           * Full URL, a path like /events, a mailto: address, or an #anchor.
+           */
+          url?: string | null;
+          label: string;
+          /**
+           * Choose how the link should be rendered.
+           */
+          appearance?: ('primary' | 'secondary' | 'solidDark' | 'link') | null;
+        };
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'proposeProgram';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBandBlock".
+ */
+export interface ContactBandBlock {
+  addressLabel?: string | null;
+  emailLabel?: string | null;
+  /**
+   * Leave blank to use the STEM contact email from Site Settings.
+   */
+  email?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'contactBand';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LeadershipBoardBlock".
+ */
+export interface LeadershipBoardBlock {
+  /**
+   * Sections to render, in order. Members come from the Board Members collection.
+   */
+  groups?:
+    | {
+        group: 'exec' | 'admin' | 'programs' | 'strategy';
+        eyebrow?: string | null;
+        title: string;
+        layout?: ('grid' | 'feature') | null;
+        id?: string | null;
+      }[]
+    | null;
+  cta?: {
+    enabled?: boolean | null;
+    eyebrow?: string | null;
+    heading?: string | null;
+    body?: string | null;
+    buttonLabel?: string | null;
+    /**
+     * Leave blank to use the President's email from Board Members.
+     */
+    email?: string | null;
+  };
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'leadershipBoard';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ZeffyEmbedBlock".
+ */
+export interface ZeffyEmbedBlock {
+  heading?: string | null;
+  intro?: string | null;
+  /**
+   * Zeffy form URL, e.g. https://www.zeffy.com/embed/ticketing/… or https://www.zeffy.com/en-US/ticketing/…
+   */
+  url: string;
+  height?: number | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'zeffyEmbed';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -522,15 +848,18 @@ export interface ContentBlock {
                 value: number | Page;
               } | null)
             | ({
-                relationTo: 'posts';
-                value: number | Post;
+                relationTo: 'events';
+                value: number | Event;
               } | null);
+          /**
+           * Full URL, a path like /events, a mailto: address, or an #anchor.
+           */
           url?: string | null;
           label: string;
           /**
            * Choose how the link should be rendered.
            */
-          appearance?: ('default' | 'outline') | null;
+          appearance?: ('primary' | 'secondary' | 'solidDark' | 'link') | null;
         };
         id?: string | null;
       }[]
@@ -548,40 +877,6 @@ export interface MediaBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'mediaBlock';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock".
- */
-export interface ArchiveBlock {
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  populateBy?: ('collection' | 'selection') | null;
-  relationTo?: 'posts' | null;
-  categories?: (number | Category)[] | null;
-  limit?: number | null;
-  selectedDocs?:
-    | {
-        relationTo: 'posts';
-        value: number | Post;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'archive';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -776,6 +1071,108 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "board-members".
+ */
+export interface BoardMember {
+  id: number;
+  /**
+   * Nicknames in quotes are fine, e.g. Jason "Cueball" Simmons.
+   */
+  name: string;
+  /**
+   * Rank / credentials, e.g. Lt Col, USAF (ret.)
+   */
+  postNominals?: string | null;
+  role: string;
+  group: 'exec' | 'admin' | 'programs' | 'strategy';
+  /**
+   * Portrait, ideally 4:5. Falls back to initials when empty.
+   */
+  photo?: (number | null) | Media;
+  email?: string | null;
+  phone?: string | null;
+  /**
+   * Full LinkedIn profile URL.
+   */
+  linkedin?: string | null;
+  /**
+   * GitHub profile URL or username.
+   */
+  github?: string | null;
+  /**
+   * Personal or company website URL.
+   */
+  website?: string | null;
+  bio?: string | null;
+  /**
+   * Lower numbers appear first within a group.
+   */
+  order?: number | null;
+  /**
+   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   */
+  generateSlug?: boolean | null;
+  slug: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stem-programs".
+ */
+export interface StemProgram {
+  id: number;
+  name: string;
+  /**
+   * Partner organization, e.g. "University of Colorado Colorado Springs (UCCS)".
+   */
+  partner: string;
+  /**
+   * Short label for compact cards, e.g. "UCCS". Defaults to the partner name before any comma or parenthesis.
+   */
+  partnerShort?: string | null;
+  description: string;
+  /**
+   * Optional partner / program URL.
+   */
+  link?: string | null;
+  /**
+   * Featured programs are shown first on the home page.
+   */
+  featured?: boolean | null;
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "redirects".
  */
 export interface Redirect {
@@ -792,8 +1189,8 @@ export interface Redirect {
           value: number | Page;
         } | null)
       | ({
-          relationTo: 'posts';
-          value: number | Post;
+          relationTo: 'events';
+          value: number | Event;
         } | null);
     url?: string | null;
   };
@@ -811,37 +1208,6 @@ export interface FormSubmission {
     | {
         field: string;
         value: string;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search".
- */
-export interface Search {
-  id: number;
-  title?: string | null;
-  priority?: number | null;
-  doc: {
-    relationTo: 'posts';
-    value: number | Post;
-  };
-  slug?: string | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (number | null) | Media;
-  };
-  categories?:
-    | {
-        relationTo?: string | null;
-        categoryID?: string | null;
-        title?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -917,7 +1283,7 @@ export interface PayloadJob {
     | {
         executedAt: string;
         completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
+        taskSlug: 'inline' | 'syncLumaEvents' | 'schedulePublish';
         taskID: string;
         input?:
           | {
@@ -950,7 +1316,7 @@ export interface PayloadJob {
         id?: string | null;
       }[]
     | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
+  taskSlug?: ('inline' | 'syncLumaEvents' | 'schedulePublish') | null;
   queue?: string | null;
   waitUntil?: string | null;
   processing?: boolean | null;
@@ -969,16 +1335,20 @@ export interface PayloadLockedDocument {
         value: number | Page;
       } | null)
     | ({
-        relationTo: 'posts';
-        value: number | Post;
+        relationTo: 'events';
+        value: number | Event;
+      } | null)
+    | ({
+        relationTo: 'board-members';
+        value: number | BoardMember;
+      } | null)
+    | ({
+        relationTo: 'stem-programs';
+        value: number | StemProgram;
       } | null)
     | ({
         relationTo: 'media';
         value: number | Media;
-      } | null)
-    | ({
-        relationTo: 'categories';
-        value: number | Category;
       } | null)
     | ({
         relationTo: 'users';
@@ -995,10 +1365,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'form-submissions';
         value: number | FormSubmission;
-      } | null)
-    | ({
-        relationTo: 'search';
-        value: number | Search;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1056,7 +1422,11 @@ export interface PagesSelect<T extends boolean = true> {
     | T
     | {
         type?: T;
-        richText?: T;
+        variant?: T;
+        eyebrow?: T;
+        title?: T;
+        highlight?: T;
+        subtitle?: T;
         links?:
           | T
           | {
@@ -1072,15 +1442,25 @@ export interface PagesSelect<T extends boolean = true> {
                   };
               id?: T;
             };
-        media?: T;
+        showLocationPulse?: T;
       };
   layout?:
     | T
     | {
-        cta?: T | CallToActionBlockSelect<T>;
+        missionPillars?: T | MissionPillarsBlockSelect<T>;
+        featuredEvent?: T | FeaturedEventBlockSelect<T>;
+        eventsGrid?: T | EventsGridBlockSelect<T>;
+        stemImpact?: T | StemImpactBlockSelect<T>;
+        stemPrograms?: T | StemProgramsBlockSelect<T>;
+        eligibility?: T | EligibilityBlockSelect<T>;
+        promoBand?: T | PromoBandBlockSelect<T>;
+        ctaBand?: T | CtaBandBlockSelect<T>;
+        proposeProgram?: T | ProposeProgramBlockSelect<T>;
+        contactBand?: T | ContactBandBlockSelect<T>;
+        leadershipBoard?: T | LeadershipBoardBlockSelect<T>;
+        zeffyEmbed?: T | ZeffyEmbedBlockSelect<T>;
         content?: T | ContentBlockSelect<T>;
         mediaBlock?: T | MediaBlockSelect<T>;
-        archive?: T | ArchiveBlockSelect<T>;
         formBlock?: T | FormBlockSelect<T>;
       };
   meta?:
@@ -1099,10 +1479,134 @@ export interface PagesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock_select".
+ * via the `definition` "MissionPillarsBlock_select".
  */
-export interface CallToActionBlockSelect<T extends boolean = true> {
-  richText?: T;
+export interface MissionPillarsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  pillars?:
+    | T
+    | {
+        icon?: T;
+        title?: T;
+        body?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FeaturedEventBlock_select".
+ */
+export interface FeaturedEventBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  mode?: T;
+  event?: T;
+  viewAllLabel?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EventsGridBlock_select".
+ */
+export interface EventsGridBlockSelect<T extends boolean = true> {
+  showFeatured?: T;
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  scope?: T;
+  limit?: T;
+  allEventsLabel?: T;
+  emptyMessage?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StemImpactBlock_select".
+ */
+export interface StemImpactBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  statOverride?: T;
+  statCaption?: T;
+  aside?: T;
+  limit?: T;
+  linkLabel?: T;
+  linkPage?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StemProgramsBlock_select".
+ */
+export interface StemProgramsBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  showImpactStat?: T;
+  impactEyebrow?: T;
+  impactCaption?: T;
+  impactBody?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EligibilityBlock_select".
+ */
+export interface EligibilityBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  items?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "PromoBandBlock_select".
+ */
+export interface PromoBandBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  headingParts?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  body?: T;
+  link?:
+    | T
+    | {
+        type?: T;
+        newTab?: T;
+        reference?: T;
+        url?: T;
+        label?: T;
+        appearance?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CtaBandBlock_select".
+ */
+export interface CtaBandBlockSelect<T extends boolean = true> {
+  eyebrow?: T;
+  heading?: T;
+  intro?: T;
+  style?: T;
   links?:
     | T
     | {
@@ -1118,6 +1622,84 @@ export interface CallToActionBlockSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ProposeProgramBlock_select".
+ */
+export interface ProposeProgramBlockSelect<T extends boolean = true> {
+  anchor?: T;
+  eyebrow?: T;
+  heading?: T;
+  body?: T;
+  email?: T;
+  links?:
+    | T
+    | {
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+              appearance?: T;
+            };
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ContactBandBlock_select".
+ */
+export interface ContactBandBlockSelect<T extends boolean = true> {
+  addressLabel?: T;
+  emailLabel?: T;
+  email?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LeadershipBoardBlock_select".
+ */
+export interface LeadershipBoardBlockSelect<T extends boolean = true> {
+  groups?:
+    | T
+    | {
+        group?: T;
+        eyebrow?: T;
+        title?: T;
+        layout?: T;
+        id?: T;
+      };
+  cta?:
+    | T
+    | {
+        enabled?: T;
+        eyebrow?: T;
+        heading?: T;
+        body?: T;
+        buttonLabel?: T;
+        email?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ZeffyEmbedBlock_select".
+ */
+export interface ZeffyEmbedBlockSelect<T extends boolean = true> {
+  heading?: T;
+  intro?: T;
+  url?: T;
+  height?: T;
   id?: T;
   blockName?: T;
 }
@@ -1158,20 +1740,6 @@ export interface MediaBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock_select".
- */
-export interface ArchiveBlockSelect<T extends boolean = true> {
-  introContent?: T;
-  populateBy?: T;
-  relationTo?: T;
-  categories?: T;
-  limit?: T;
-  selectedDocs?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "FormBlock_select".
  */
 export interface FormBlockSelect<T extends boolean = true> {
@@ -1183,14 +1751,39 @@ export interface FormBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
+ * via the `definition` "events_select".
  */
-export interface PostsSelect<T extends boolean = true> {
+export interface EventsSelect<T extends boolean = true> {
   title?: T;
-  heroImage?: T;
-  content?: T;
-  relatedPosts?: T;
-  categories?: T;
+  startAt?: T;
+  endAt?: T;
+  timezone?: T;
+  dateDisplay?: T;
+  location?: T;
+  address?: T;
+  lumaUrl?: T;
+  coverImage?: T;
+  coverUrl?: T;
+  description?: T;
+  featured?: T;
+  hidden?: T;
+  tag?: T;
+  blurb?: T;
+  highlights?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
+  zeffy?:
+    | T
+    | {
+        enabled?: T;
+        url?: T;
+        buttonLabel?: T;
+        embed?: T;
+        height?: T;
+      };
   meta?:
     | T
     | {
@@ -1198,14 +1791,9 @@ export interface PostsSelect<T extends boolean = true> {
         image?: T;
         description?: T;
       };
-  publishedAt?: T;
-  authors?: T;
-  populatedAuthors?:
-    | T
-    | {
-        id?: T;
-        name?: T;
-      };
+  source?: T;
+  lumaEventId?: T;
+  syncedAt?: T;
   generateSlug?: T;
   slug?: T;
   updatedAt?: T;
@@ -1214,12 +1802,48 @@ export interface PostsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "board-members_select".
+ */
+export interface BoardMembersSelect<T extends boolean = true> {
+  name?: T;
+  postNominals?: T;
+  role?: T;
+  group?: T;
+  photo?: T;
+  email?: T;
+  phone?: T;
+  linkedin?: T;
+  github?: T;
+  website?: T;
+  bio?: T;
+  order?: T;
+  generateSlug?: T;
+  slug?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stem-programs_select".
+ */
+export interface StemProgramsSelect<T extends boolean = true> {
+  name?: T;
+  partner?: T;
+  partnerShort?: T;
+  description?: T;
+  link?: T;
+  featured?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   caption?: T;
-  _objectKey?: T;
   folder?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1306,26 +1930,6 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
- */
-export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
-  generateSlug?: T;
-  slug?: T;
-  parent?: T;
-  breadcrumbs?:
-    | T
-    | {
-        doc?: T;
-        url?: T;
-        label?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1518,33 +2122,6 @@ export interface FormSubmissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search_select".
- */
-export interface SearchSelect<T extends boolean = true> {
-  title?: T;
-  priority?: T;
-  doc?: T;
-  slug?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  categories?:
-    | T
-    | {
-        relationTo?: T;
-        categoryID?: T;
-        title?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
@@ -1643,15 +2220,40 @@ export interface Header {
                 value: number | Page;
               } | null)
             | ({
-                relationTo: 'posts';
-                value: number | Post;
+                relationTo: 'events';
+                value: number | Event;
               } | null);
+          /**
+           * Full URL, a path like /events, a mailto: address, or an #anchor.
+           */
           url?: string | null;
           label: string;
         };
         id?: string | null;
       }[]
     | null;
+  cta?: {
+    enabled?: boolean | null;
+    link?: {
+      type?: ('reference' | 'custom') | null;
+      newTab?: boolean | null;
+      reference?:
+        | ({
+            relationTo: 'pages';
+            value: number | Page;
+          } | null)
+        | ({
+            relationTo: 'events';
+            value: number | Event;
+          } | null);
+      /**
+       * Full URL, a path like /events, a mailto: address, or an #anchor.
+       */
+      url?: string | null;
+      label: string;
+    };
+  };
+  showThemeToggle?: boolean | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1661,6 +2263,45 @@ export interface Header {
  */
 export interface Footer {
   id: number;
+  /**
+   * Short paragraph under the chapter name.
+   */
+  tagline?: string | null;
+  affiliation?: {
+    prefix?: string | null;
+    label?: string | null;
+    url?: string | null;
+  };
+  columns?:
+    | {
+        title: string;
+        links?:
+          | {
+              link: {
+                type?: ('reference' | 'custom') | null;
+                newTab?: boolean | null;
+                reference?:
+                  | ({
+                      relationTo: 'pages';
+                      value: number | Page;
+                    } | null)
+                  | ({
+                      relationTo: 'events';
+                      value: number | Event;
+                    } | null);
+                /**
+                 * Full URL, a path like /events, a mailto: address, or an #anchor.
+                 */
+                url?: string | null;
+                label: string;
+              };
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  bottomNote?: string | null;
   navItems?:
     | {
         link: {
@@ -1672,15 +2313,90 @@ export interface Footer {
                 value: number | Page;
               } | null)
             | ({
-                relationTo: 'posts';
-                value: number | Post;
+                relationTo: 'events';
+                value: number | Event;
               } | null);
+          /**
+           * Full URL, a path like /events, a mailto: address, or an #anchor.
+           */
           url?: string | null;
           label: string;
         };
         id?: string | null;
       }[]
     | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings".
+ */
+export interface SiteSetting {
+  id: number;
+  siteName: string;
+  /**
+   * Wordmark in the header.
+   */
+  shortName?: string | null;
+  /**
+   * Wordmark on small phones.
+   */
+  tinyName?: string | null;
+  /**
+   * Default meta description and Open Graph description.
+   */
+  description?: string | null;
+  /**
+   * Default social share image (1200×630).
+   */
+  ogImage?: (number | null) | Media;
+  address?: {
+    line1?: string | null;
+    line2?: string | null;
+  };
+  /**
+   * General chapter inquiries. Leave blank to use the President's email from Board Members.
+   */
+  contactEmail?: string | null;
+  /**
+   * STEM grant proposals (VP, Education).
+   */
+  stemEmail?: string | null;
+  /**
+   * Shown next to the pulsing dot in the home hero.
+   */
+  regionLine?: string | null;
+  timezoneLabel?: string | null;
+  /**
+   * AFCEA International membership page.
+   */
+  membershipUrl?: string | null;
+  luma?: {
+    /**
+     * Public calendar page.
+     */
+    calendarUrl?: string | null;
+    /**
+     * Luma calendar id (cal-…). Used by the event sync.
+     */
+    calendarApiId?: string | null;
+    syncEnabled?: boolean | null;
+    includePast?: boolean | null;
+    lastSyncedAt?: string | null;
+    lastSyncSummary?: string | null;
+  };
+  zeffy?: {
+    /**
+     * Optional general donation form URL.
+     */
+    donateUrl?: string | null;
+  };
+  /**
+   * Total invested, used for the "$500K+" stat.
+   */
+  stemTotal?: number | null;
+  stemTotalYear?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1703,6 +2419,21 @@ export interface HeaderSelect<T extends boolean = true> {
             };
         id?: T;
       };
+  cta?:
+    | T
+    | {
+        enabled?: T;
+        link?:
+          | T
+          | {
+              type?: T;
+              newTab?: T;
+              reference?: T;
+              url?: T;
+              label?: T;
+            };
+      };
+  showThemeToggle?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1712,6 +2443,35 @@ export interface HeaderSelect<T extends boolean = true> {
  * via the `definition` "footer_select".
  */
 export interface FooterSelect<T extends boolean = true> {
+  tagline?: T;
+  affiliation?:
+    | T
+    | {
+        prefix?: T;
+        label?: T;
+        url?: T;
+      };
+  columns?:
+    | T
+    | {
+        title?: T;
+        links?:
+          | T
+          | {
+              link?:
+                | T
+                | {
+                    type?: T;
+                    newTab?: T;
+                    reference?: T;
+                    url?: T;
+                    label?: T;
+                  };
+              id?: T;
+            };
+        id?: T;
+      };
+  bottomNote?: T;
   navItems?:
     | T
     | {
@@ -1732,6 +2492,48 @@ export interface FooterSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-settings_select".
+ */
+export interface SiteSettingsSelect<T extends boolean = true> {
+  siteName?: T;
+  shortName?: T;
+  tinyName?: T;
+  description?: T;
+  ogImage?: T;
+  address?:
+    | T
+    | {
+        line1?: T;
+        line2?: T;
+      };
+  contactEmail?: T;
+  stemEmail?: T;
+  regionLine?: T;
+  timezoneLabel?: T;
+  membershipUrl?: T;
+  luma?:
+    | T
+    | {
+        calendarUrl?: T;
+        calendarApiId?: T;
+        syncEnabled?: T;
+        includePast?: T;
+        lastSyncedAt?: T;
+        lastSyncSummary?: T;
+      };
+  zeffy?:
+    | T
+    | {
+        donateUrl?: T;
+      };
+  stemTotal?: T;
+  stemTotalYear?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "collections_widget".
  */
 export interface CollectionsWidget {
@@ -1739,6 +2541,22 @@ export interface CollectionsWidget {
     [k: string]: unknown;
   };
   width: 'full';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TaskSyncLumaEvents".
+ */
+export interface TaskSyncLumaEvents {
+  input: {
+    includePast?: boolean | null;
+  };
+  output: {
+    created?: number | null;
+    updated?: number | null;
+    skipped?: number | null;
+    unpublishedMissing?: number | null;
+    errors?: number | null;
+  };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1754,8 +2572,8 @@ export interface TaskSchedulePublish {
           value: number | Page;
         } | null)
       | ({
-          relationTo: 'posts';
-          value: number | Post;
+          relationTo: 'events';
+          value: number | Event;
         } | null);
     global?: string | null;
     user?: {
@@ -1764,42 +2582,6 @@ export interface TaskSchedulePublish {
     } | null;
   };
   output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "BannerBlock".
- */
-export interface BannerBlock {
-  style: 'info' | 'warning' | 'error' | 'success';
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'banner';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CodeBlock".
- */
-export interface CodeBlock {
-  language?: ('typescript' | 'javascript' | 'css') | null;
-  code: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'code';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
