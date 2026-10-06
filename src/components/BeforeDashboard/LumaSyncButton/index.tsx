@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Fragment, useCallback, useState } from 'react'
-import { toast } from '@payloadcms/ui'
+import { Button, toast } from '@payloadcms/ui'
 
 import '../SeedButton/index.scss'
 
@@ -10,7 +10,7 @@ export const LumaSyncButton: React.FC = () => {
   const [summary, setSummary] = useState<string | null>(null)
 
   const handleClick = useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault()
       if (loading) return
       setLoading(true)
@@ -49,9 +49,15 @@ export const LumaSyncButton: React.FC = () => {
 
   return (
     <Fragment>
-      <button className="seedButton" onClick={handleClick} disabled={loading}>
+      <Button
+        buttonStyle="pill"
+        className="dashboard-action"
+        disabled={loading}
+        onClick={handleClick}
+        size="small"
+      >
         {loading ? 'Syncing Luma…' : 'Sync Luma events now'}
-      </button>
+      </Button>
       {summary ? ` (${summary})` : ''}
     </Fragment>
   )

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Fragment, useCallback, useState } from 'react'
-import { toast } from '@payloadcms/ui'
+import { Button, toast } from '@payloadcms/ui'
 
 import './index.scss'
 
@@ -20,7 +20,7 @@ export const SeedButton: React.FC = () => {
   const [error, setError] = useState<null | string>(null)
 
   const handleClick = useCallback(
-    async (e: React.MouseEvent<HTMLButtonElement>) => {
+    async (e: React.MouseEvent) => {
       e.preventDefault()
 
       if (seeded) {
@@ -74,9 +74,15 @@ export const SeedButton: React.FC = () => {
 
   return (
     <Fragment>
-      <button className="seedButton" onClick={handleClick}>
-        Seed your database
-      </button>
+      <Button
+        buttonStyle="pill"
+        className="dashboard-action"
+        disabled={loading || seeded}
+        onClick={handleClick}
+        size="small"
+      >
+        {loading ? 'Seeding…' : 'Seed your database'}
+      </Button>
       {message}
     </Fragment>
   )

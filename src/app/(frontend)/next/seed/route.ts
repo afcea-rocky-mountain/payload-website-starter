@@ -18,6 +18,18 @@ export async function POST(): Promise<Response> {
     return new Response('Action forbidden.', { status: 403 })
   }
 
+  // On Vercel the filesystem is read-only, so media must go to Blob storage.
+  if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN) {
+    return Response.json(
+      {
+        success: false,
+        error:
+          'BLOB_READ_WRITE_TOKEN is not set. Add a Vercel Blob store to this project (Storage tab), redeploy, then seed again.',
+      },
+      { status: 500 },
+    )
+  }
+
   try {
     // Create a Payload request object to pass to the Local API for transactions
     // At this point you should pass in a user, locale, and any other context you need for the Local API
